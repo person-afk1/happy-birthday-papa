@@ -7,13 +7,14 @@
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
     
-    body {
+    html, body {
+      /* Uses 100dvh to automatically fit mobile browser address bars */
       height: 100vh;
+      height: 100dvh;
       width: 100vw;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      /* Main alignment: elements at top and bottom */
       justify-content: space-between;
       align-items: center;
       background-size: cover;
@@ -45,9 +46,8 @@
       position: relative;
       z-index: 2;
       width: 100%;
-      padding: 1.5rem 1rem;
-      /* Subtle dark fade at top for text readability */
-      background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+      padding: 2rem 1rem 1rem 1rem;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
     }
 
     h1 { font-size: 1.8rem; line-height: 1.2; font-weight: 800; }
@@ -57,22 +57,22 @@
       position: relative;
       z-index: 2;
       width: 100%;
-      padding: 1rem 1rem 2rem 1rem; /* Extra padding at bottom */
-      /* Subtle dark fade at bottom for text/button readability */
-      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+      /* Raised padding at the bottom so Chrome navbar won't cut it off */
+      padding: 1rem 1rem calc(2.5rem + env(safe-area-inset-bottom)) 1rem; 
+      background: linear-gradient(to top, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
-      gap: 15px; /* Space between message and button */
+      gap: 12px;
     }
 
-    p { font-size: 1.1rem; line-height: 1.5; color: #f0f0f0; max-width: 90%; }
+    p { font-size: 1.1rem; line-height: 1.4; color: #f0f0f0; max-width: 90%; }
 
     /* Universal Button Style */
     .btn {
       padding: 12px 28px;
       font-size: 1rem;
-      background: #e91e63; /* Pink */
+      background: #e91e63;
       color: white;
       border: none;
       border-radius: 25px;
@@ -86,7 +86,7 @@
       transform: scale(0.97);
     }
 
-    /* Mute/Secondary Button Style */
+    /* Secondary Button Style */
     .btn-secondary {
       background: rgba(255, 255, 255, 0.2);
       border: 1px solid white;
@@ -95,7 +95,7 @@
     }
   </style>
 
-  <!-- Firebase SDK (Standard v8) -->
+  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
@@ -109,8 +109,6 @@
     <h1 id="title">Happy Birthday Papa! 🎉</h1>
   </div>
 
-  <!-- Empty Center for Photos/Video -->
-
   <!-- Message & Control Section (BOTTOM) -->
   <div class="footer-content">
     <p id="message">Activate your trip dispatch!</p>
@@ -121,7 +119,6 @@
   <audio id="bg-audio" loop></audio>
 
   <script>
-    // EXACT Firebase Configuration (Singapore Database URL)
     const firebaseConfig = {
       apiKey: "AIzaSyDs245uSIqkn6-lYHUo7aWxEaVNpeaZA1k",
       authDomain: "happy-birthday-papa-e7e39.firebaseapp.com",
@@ -142,11 +139,9 @@
     let userInteracted = false;
 
     function handleButtonClick() {
-      // First click: Request Notifications & Start Media
       if (!userInteracted) {
         userInteracted = true;
         
-        // Notification permission request for phone automation
         if ("Notification" in window && Notification.permission !== "granted") {
           Notification.requestPermission();
         }
@@ -154,13 +149,11 @@
         if (audio.src) audio.play();
         if (video.src) video.play();
         
-        // Update button appearance
         actionBtn.innerText = "Pause Music ⏸️";
         actionBtn.classList.add("btn-secondary");
         return;
       }
 
-      // Subsequent clicks: Toggle Audio Play/Pause
       if (audio.paused) {
         audio.play();
         actionBtn.innerText = "Pause Music ⏸️";
@@ -187,7 +180,7 @@
         if (data.hasVideoAudio) {
           video.muted = false;
           audio.pause();
-          actionBtn.style.display = 'none'; // Hide music button if video has audio
+          actionBtn.style.display = 'none';
         } else {
           video.muted = true;
           actionBtn.style.display = 'inline-block';
