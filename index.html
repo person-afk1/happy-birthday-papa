@@ -6,22 +6,26 @@
   <title>Birthday Dispatch 🎂</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     body {
       height: 100vh;
       width: 100vw;
       overflow: hidden;
       display: flex;
       flex-direction: column;
+      /* Main alignment: elements at top and bottom */
+      justify-content: space-between;
       align-items: center;
-      justify-content: center;
       background-size: cover;
       background-position: center;
+      background-color: #111;
       color: white;
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
       text-align: center;
       position: relative;
-      background-color: #111;
     }
+
+    /* Full-screen Background Video */
     #bg-video {
       position: absolute;
       top: 50%;
@@ -35,40 +39,63 @@
       object-fit: cover;
       display: none;
     }
-    .overlay {
+
+    /* Container for Header Content (TOP) */
+    .header-content {
       position: relative;
       z-index: 2;
-      background: rgba(0, 0, 0, 0.75);
-      backdrop-filter: blur(8px);
-      padding: 2rem;
-      border-radius: 20px;
-      max-width: 85%;
-      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
-      border: 1px solid rgba(255, 255, 255, 0.2);
+      width: 100%;
+      padding: 1.5rem 1rem;
+      /* Subtle dark fade at top for text readability */
+      background: linear-gradient(to bottom, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
     }
-    h1 { font-size: 2rem; margin-bottom: 12px; line-height: 1.2; }
-    p { font-size: 1.1rem; line-height: 1.5; color: #e0e0e0; }
-    .btn {
+
+    h1 { font-size: 1.8rem; line-height: 1.2; font-weight: 800; }
+
+    /* Container for Footer Content (BOTTOM) */
+    .footer-content {
       position: relative;
-      z-index: 3;
-      padding: 12px 24px;
+      z-index: 2;
+      width: 100%;
+      padding: 1rem 1rem 2rem 1rem; /* Extra padding at bottom */
+      /* Subtle dark fade at bottom for text/button readability */
+      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0) 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px; /* Space between message and button */
+    }
+
+    p { font-size: 1.1rem; line-height: 1.5; color: #f0f0f0; max-width: 90%; }
+
+    /* Universal Button Style */
+    .btn {
+      padding: 12px 28px;
       font-size: 1rem;
-      background: #e91e63;
+      background: #e91e63; /* Pink */
       color: white;
       border: none;
       border-radius: 25px;
       cursor: pointer;
-      margin-top: 18px;
       font-weight: bold;
-      transition: background 0.3s;
+      transition: background 0.3s, transform 0.1s;
+      box-shadow: 0 4px 15px rgba(233, 30, 99, 0.4);
     }
+    
+    .btn:active {
+      transform: scale(0.97);
+    }
+
+    /* Mute/Secondary Button Style */
     .btn-secondary {
       background: rgba(255, 255, 255, 0.2);
       border: 1px solid white;
+      color: white;
+      box-shadow: none;
     }
   </style>
 
-  <!-- Firebase SDK -->
+  <!-- Firebase SDK (Standard v8) -->
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
 </head>
@@ -77,10 +104,16 @@
   <!-- Background Video Element -->
   <video id="bg-video" loop muted playsinline></video>
 
-  <!-- Message Card Overlay -->
-  <div class="overlay">
+  <!-- Title Section (TOP) -->
+  <div class="header-content">
     <h1 id="title">Happy Birthday Papa! 🎉</h1>
-    <p id="message">Tap below to activate your trip dispatch!</p>
+  </div>
+
+  <!-- Empty Center for Photos/Video -->
+
+  <!-- Message & Control Section (BOTTOM) -->
+  <div class="footer-content">
+    <p id="message">Activate your trip dispatch!</p>
     <button id="action-btn" class="btn" onclick="handleButtonClick()">Tap to Unlock Music 🎵</button>
   </div>
 
@@ -88,7 +121,7 @@
   <audio id="bg-audio" loop></audio>
 
   <script>
-    // Exact Firebase Configuration with Singapore Region URL
+    // EXACT Firebase Configuration (Singapore Database URL)
     const firebaseConfig = {
       apiKey: "AIzaSyDs245uSIqkn6-lYHUo7aWxEaVNpeaZA1k",
       authDomain: "happy-birthday-papa-e7e39.firebaseapp.com",
@@ -113,7 +146,7 @@
       if (!userInteracted) {
         userInteracted = true;
         
-        // Request Notification permission for phone routines
+        // Notification permission request for phone automation
         if ("Notification" in window && Notification.permission !== "granted") {
           Notification.requestPermission();
         }
@@ -121,12 +154,13 @@
         if (audio.src) audio.play();
         if (video.src) video.play();
         
+        // Update button appearance
         actionBtn.innerText = "Pause Music ⏸️";
         actionBtn.classList.add("btn-secondary");
         return;
       }
 
-      // Subsequent clicks: Toggle Audio Play / Pause
+      // Subsequent clicks: Toggle Audio Play/Pause
       if (audio.paused) {
         audio.play();
         actionBtn.innerText = "Pause Music ⏸️";
