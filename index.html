@@ -48,7 +48,7 @@
     }
     h1 { font-size: 2rem; margin-bottom: 12px; line-height: 1.2; }
     p { font-size: 1.1rem; line-height: 1.5; color: #e0e0e0; }
-    #start-btn {
+    .btn {
       position: relative;
       z-index: 3;
       padding: 12px 24px;
@@ -58,8 +58,13 @@
       border: none;
       border-radius: 25px;
       cursor: pointer;
-      margin-top: 15px;
+      margin-top: 18px;
       font-weight: bold;
+      transition: background 0.3s;
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.2);
+      border: 1px solid white;
     }
   </style>
 
@@ -69,18 +74,21 @@
 </head>
 <body>
 
+  <!-- Background Video Element -->
   <video id="bg-video" loop muted playsinline></video>
 
+  <!-- Message Card Overlay -->
   <div class="overlay">
     <h1 id="title">Happy Birthday Papa! 🎉</h1>
     <p id="message">Tap below to activate your trip dispatch!</p>
-    <button id="start-btn" onclick="enableAudio()">Tap to Unlock Music 🎵</button>
+    <button id="action-btn" class="btn" onclick="handleButtonClick()">Tap to Unlock Music 🎵</button>
   </div>
 
+  <!-- Background Audio Element -->
   <audio id="bg-audio" loop></audio>
 
   <script>
-    // Exact Firebase Configuration
+    // Exact Firebase Configuration with Singapore Region URL
     const firebaseConfig = {
       apiKey: "AIzaSyDs245uSIqkn6-lYHUo7aWxEaVNpeaZA1k",
       authDomain: "happy-birthday-papa-e7e39.firebaseapp.com",
@@ -96,16 +104,39 @@
     const db = firebase.database();
     const audio = document.getElementById('bg-audio');
     const video = document.getElementById('bg-video');
+    const actionBtn = document.getElementById('action-btn');
+
     let userInteracted = false;
 
-    function enableAudio() {
-      userInteracted = true;
-      document.getElementById('start-btn').style.display = 'none';
-      if (audio.src) audio.play();
-      if (video.src) video.play();
+    function handleButtonClick() {
+      // First click: Request Notifications & Start Media
+      if (!userInteracted) {
+        userInteracted = true;
+        
+        // Request Notification permission for phone routines
+        if ("Notification" in window && Notification.permission !== "granted") {
+          Notification.requestPermission();
+        }
+
+        if (audio.src) audio.play();
+        if (video.src) video.play();
+        
+        actionBtn.innerText = "Pause Music ⏸️";
+        actionBtn.classList.add("btn-secondary");
+        return;
+      }
+
+      // Subsequent clicks: Toggle Audio Play / Pause
+      if (audio.paused) {
+        audio.play();
+        actionBtn.innerText = "Pause Music ⏸️";
+      } else {
+        audio.pause();
+        actionBtn.innerText = "Play Music ▶️";
+      }
     }
 
-    // Real-time listener
+    // Real-time Firebase Listener
     db.ref('current_display').on('value', (snapshot) => {
       const data = snapshot.val();
       if (!data) return;
@@ -122,24 +153,30 @@
         if (data.hasVideoAudio) {
           video.muted = false;
           audio.pause();
+          actionBtn.style.display = 'none'; // Hide music button if video has audio
         } else {
           video.muted = true;
+          actionBtn.style.display = 'inline-block';
         }
       } else {
         video.pause();
         video.style.display = 'none';
         video.src = "";
+        actionBtn.style.display = 'inline-block';
       }
 
-      // Handle Image
+      // Handle Background Image
       if (data.bgImage && (!data.videoUrl || data.videoUrl.trim() === "")) {
         document.body.style.backgroundImage = `url('${data.bgImage}')`;
       }
 
-      // Handle Audio
+      // Handle Audio Track
       if (data.audioUrl && (!data.videoUrl || !data.hasVideoAudio)) {
         audio.src = data.audioUrl;
-        if (userInteracted) audio.play();
+        if (userInteracted) {
+          audio.play();
+          actionBtn.innerText = "Pause Music ⏸️";
+        }
       } else if (!data.audioUrl) {
         audio.pause();
       }
