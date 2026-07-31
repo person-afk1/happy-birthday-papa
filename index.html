@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Birthday Dispatch 🎂</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background-size: cover;
+      background-position: center;
+      color: white;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      text-align: center;
+      position: relative;
+      background-color: #111;
+    }
+    #bg-video {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      min-width: 100%;
+      min-height: 100%;
+      width: auto;
+      height: auto;
+      z-index: 1;
+      transform: translate(-50%, -50%);
+      object-fit: cover;
+      display: none;
+    }
+    .overlay {
+      position: relative;
+      z-index: 2;
+      background: rgba(0, 0, 0, 0.75);
+      backdrop-filter: blur(8px);
+      padding: 2rem;
+      border-radius: 20px;
+      max-width: 85%;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+    h1 { font-size: 2rem; margin-bottom: 12px; line-height: 1.2; }
+    p { font-size: 1.1rem; line-height: 1.5; color: #e0e0e0; }
+    #start-btn {
+      position: relative;
+      z-index: 3;
+      padding: 12px 24px;
+      font-size: 1rem;
+      background: #e91e63;
+      color: white;
+      border: none;
+      border-radius: 25px;
+      cursor: pointer;
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+</head>
+<body>
+
+  <video id="bg-video" loop muted playsinline></video>
+
+  <div class="overlay">
+    <h1 id="title">Happy Birthday Papa! 🎉</h1>
+    <p id="message">Tap below to activate your trip dispatch!</p>
+    <button id="start-btn" onclick="enableAudio()">Tap to Unlock Music 🎵</button>
+  </div>
+
+  <audio id="bg-audio" loop></audio>
+
+  <script>
+    // Exact Firebase Configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyDs245uSIqkn6-lYHUo7aWxEaVNpeaZA1k",
+      authDomain: "happy-birthday-papa-e7e39.firebaseapp.com",
+      databaseURL: "https://happy-birthday-papa-e7e39-default-rtdb.firebaseio.com",
+      projectId: "happy-birthday-papa-e7e39",
+      storageBucket: "happy-birthday-papa-e7e39.firebasestorage.app",
+      messagingSenderId: "936953437581",
+      appId: "1:936953437581:web:6b719192c64a4c664fb1c4",
+      measurementId: "G-BYEZR5YS22"
+    };
+    firebase.initializeApp(firebaseConfig);
+
+    const db = firebase.database();
+    const audio = document.getElementById('bg-audio');
+    const video = document.getElementById('bg-video');
+    let userInteracted = false;
+
+    function enableAudio() {
+      userInteracted = true;
+      document.getElementById('start-btn').style.display = 'none';
+      if (audio.src) audio.play();
+      if (video.src) video.play();
+    }
+
+    // Real-time listener
+    db.ref('current_display').on('value', (snapshot) => {
+      const data = snapshot.val();
+      if (!data) return;
+
+      document.getElementById('title').innerText = data.title || "Happy Birthday!";
+      document.getElementById('message').innerText = data.message || "";
+
+      // Handle Video
+      if (data.videoUrl && data.videoUrl.trim() !== "") {
+        video.src = data.videoUrl;
+        video.style.display = 'block';
+        if (userInteracted) video.play();
+
+        if (data.hasVideoAudio) {
+          video.muted = false;
+          audio.pause();
+        } else {
+          video.muted = true;
+        }
+      } else {
+        video.pause();
+        video.style.display = 'none';
+        video.src = "";
+      }
+
+      // Handle Image
+      if (data.bgImage && (!data.videoUrl || data.videoUrl.trim() === "")) {
+        document.body.style.backgroundImage = `url('${data.bgImage}')`;
+      }
+
+      // Handle Audio
+      if (data.audioUrl && (!data.videoUrl || !data.hasVideoAudio)) {
+        audio.src = data.audioUrl;
+        if (userInteracted) audio.play();
+      } else if (!data.audioUrl) {
+        audio.pause();
+      }
+    });
+  </script>
+</body>
+</html>
